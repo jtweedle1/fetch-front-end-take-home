@@ -9,20 +9,22 @@ import {
     Stack
 } from "@chakra-ui/react"
 
+type LoginRequestBody = {
+    name: string;
+    email: string;
+};
+
 function Home() {
     const [name, setName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const navigate = useNavigate();
 
-    const handleLogin = async () => {
+    const handleLogin = async (): Promise<void> => {
         const url = "https://frontend-take-home-service.fetch.com/auth/login";
-        const body = {
-            name: name,
-            email: email
-        }
+        const body: LoginRequestBody = { name, email };
 
         try {
-            const response = await fetch(url, {
+            const response: Response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'content-type': 'application/json;charset=UTF-8',
@@ -31,17 +33,20 @@ function Home() {
                 credentials: 'include',
             })
 
-            const result: any = await response.json();
-
             if (response.ok) {
                 console.log('Login successful.')
                 navigate('/search');
             } else {
+                const result: any = await response.json();
                 console.log('Login failed.')
                 throw new Error(`Login failed. Error: ${result.message}`);
             }
-        } catch (err) {
-            console.error('Login error: ', err)
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                console.error('Login error: ', err.message);
+            } else {
+                console.error('Unexpected login error', err);
+            }
         }
     }
 
@@ -71,7 +76,8 @@ function Home() {
                         <Input
                             name="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                setEmail(e.target.value)}
                             type="email" />
                     </Field.Root>
 
